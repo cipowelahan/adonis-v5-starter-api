@@ -1,5 +1,12 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
-import { RegisterUserValidation, LoginUserValidation, PasswordChangeValidation, EmailChangeValidation } from '../Validations/AuthValidation'
+import {
+  RegisterUserValidation,
+  LoginUserValidation,
+  PasswordChangeValidation,
+  EmailChangeValidation,
+  ProfileChangeValidation
+} from '../Validations/AuthValidation'
+import { RESPONSE_MESSAGE } from 'App/Constants/String'
 import AuthRepository from '../Repositories/AuthRepository'
 
 export default class AuthController {
@@ -23,27 +30,34 @@ export default class AuthController {
 
   public async logout(ctx: HttpContextContract) {
     await this.repo.logout(ctx)
-    return ctx.response.sendData(null, "Logout Successfully")
+    return ctx.response.sendData(null, RESPONSE_MESSAGE.LOGOUT)
   }
 
   public async logoutAll(ctx: HttpContextContract) {
     await this.repo.logoutAll(ctx)
-    return ctx.response.sendData(null, "Logout All Successfully")
+    return ctx.response.sendData(null, RESPONSE_MESSAGE.LOGOUT_ALL)
   }
 
   public async getProfile(ctx: HttpContextContract) {
-    return ctx.response.sendData(ctx.auth.user)
+    const user = await this.repo.getProfile(ctx)
+    return ctx.response.sendData(user)
+  }
+
+  public async updateProfile(ctx: HttpContextContract) {
+    const data = await ctx.request.validate(ProfileChangeValidation)
+    await this.repo.updateProfile(ctx, data)
+    return ctx.response.sendData(null, RESPONSE_MESSAGE.UPDATED)
   }
 
   public async changePassword(ctx: HttpContextContract) {
     const data = await ctx.request.validate(PasswordChangeValidation)
     await this.repo.changePassword(ctx, data)
-    return ctx.response.sendData(null, "Password Changed Successfully")
+    return ctx.response.sendData(null, RESPONSE_MESSAGE.PASSWORD_CHANGED)
   }
 
   public async changeEmail(ctx: HttpContextContract) {
     const data = await ctx.request.validate(EmailChangeValidation)
     await this.repo.changeEmail(ctx, data)
-    return ctx.response.sendData(null, "Email Changed Successfully")
+    return ctx.response.sendData(null, RESPONSE_MESSAGE.EMAIL_CHANGED)
   }
 }

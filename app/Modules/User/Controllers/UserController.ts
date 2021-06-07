@@ -1,5 +1,6 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { UserStoreValidation, UserUpdateValidation } from '../Validations/UserValidation'
+import { RESPONSE_MESSAGE } from 'App/Constants/String'
 import UserRepository from '../Repositories/UserRepository'
 
 export default class UserController {
@@ -14,8 +15,8 @@ export default class UserController {
     return ctx.response.sendData(users)
   }
 
-  public async find(ctx: HttpContextContract) {
-    const user = await this.repo.find(Number(ctx.params.id))
+  public async show(ctx: HttpContextContract) {
+    const user = await this.repo.find(Number(ctx.params.id), ctx.request.qs())
     return ctx.response.sendData(user)
   }
 
@@ -30,8 +31,8 @@ export default class UserController {
     const user = await this.repo.update(ctx, data)
     return ctx.response.sendData(user)
   }
-  public async destory(ctx: HttpContextContract) {
+  public async destroy(ctx: HttpContextContract) {
     await this.repo.destroy(ctx)
-    return ctx.response.sendData(null, "Deleted Successfully")
+    return ctx.response.sendData(null, RESPONSE_MESSAGE.DELETED)
   }
 }

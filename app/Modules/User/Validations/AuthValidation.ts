@@ -11,9 +11,28 @@ export class RegisterUserValidation {
   constructor(private ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    name: schema.string({escape: true, trim: true }),
-    email: schema.string({ escape: true, trim: true }, [ rules.email(), rules.unique({ table: 'users', column: 'email', where: { deleted_at: null }}) ]),
-    password: schema.string({}, [ rules.minLength(6), rules.maxLength(18), rules.confirmed() ])
+    name: schema.string({
+      escape: true,
+      trim: true
+    }),
+    email: schema.string({
+      escape: true,
+      trim: true
+    }, [
+      rules.email(),
+      rules.unique({
+        table: 'users',
+        column: 'email',
+        where: {
+          deleted_at: null
+        }
+      })
+    ]),
+    password: schema.string({}, [
+      rules.minLength(6),
+      rules.maxLength(18),
+      rules.confirmed()
+    ])
   })
 
   public cacheKey = this.ctx.routeKey
@@ -37,8 +56,16 @@ export class LoginUserValidation {
   constructor(private ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    email: schema.string({ escape: true, trim: true }, [ rules.email() ]),
-    password: schema.string({}, [ rules.minLength(6), rules.maxLength(18) ])
+    email: schema.string({
+      escape: true,
+      trim: true
+    }, [
+      rules.email()
+    ]),
+    password: schema.string({}, [
+      rules.minLength(6),
+      rules.maxLength(18)
+    ])
   })
 
   public cacheKey = this.ctx.routeKey
@@ -50,6 +77,23 @@ export class LoginUserValidation {
 
 }
 
+export class ProfileChangeDto {
+  public name: string
+}
+
+export class ProfileChangeValidation {
+  constructor(private ctx: HttpContextContract) { }
+
+  public schema = schema.create({
+    name: schema.string({
+      escape: true,
+      trim: true
+    })
+  })
+
+  public cacheKey = this.ctx.routeKey
+}
+
 export class PasswordChangeDto {
   public old_password: string
   public password: string
@@ -59,8 +103,15 @@ export class PasswordChangeValidation {
   constructor(private ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    old_password: schema.string({}, [ rules.minLength(6), rules.maxLength(18) ]),
-    password: schema.string({}, [ rules.minLength(6), rules.maxLength(18), rules.confirmed() ])
+    old_password: schema.string({}, [
+      rules.minLength(6),
+      rules.maxLength(18)
+    ]),
+    password: schema.string({}, [
+      rules.minLength(6),
+      rules.maxLength(18),
+      rules.confirmed()
+    ])
   })
 
   public cacheKey = this.ctx.routeKey
@@ -79,8 +130,26 @@ export class EmailChangeValidation {
   constructor(private ctx: HttpContextContract) {}
 
   public schema = schema.create({
-    email: schema.string({ escape: true, trim: true }, [ rules.email(), rules.unique({ table: 'users', column: 'email', where: { deleted_at: null }, whereNot: { id: this.ctx.auth.user.id } }) ]),
-    password: schema.string({}, [ rules.minLength(6), rules.maxLength(18) ])
+    email: schema.string({
+      escape: true,
+      trim: true
+    }, [
+      rules.email(),
+      rules.unique({
+        table: 'users',
+        column: 'email',
+        where: {
+          deleted_at: null
+        },
+        whereNot: {
+          id: this.ctx.auth.user.id
+        }
+      })
+    ]),
+    password: schema.string({}, [
+      rules.minLength(6),
+      rules.maxLength(18)
+    ])
   })
 
   public cacheKey = this.ctx.routeKey

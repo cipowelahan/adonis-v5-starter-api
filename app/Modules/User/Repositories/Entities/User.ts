@@ -1,11 +1,24 @@
-import { BaseModel, beforeSave, belongsTo, column, BelongsTo } from '@ioc:Adonis/Lucid/Orm';
-import { DateTime } from "luxon";
-import Hash from '@ioc:Adonis/Core/Hash';
+import {
+  column,
+  beforeSave,
+  manyToMany,
+  ManyToMany,
+  scope,
+  ModelQueryBuilderContract
+} from '@ioc:Adonis/Lucid/Orm'
+import Hash from '@ioc:Adonis/Core/Hash'
+import Role from 'App/Modules/Role/Repositories/Entities/Role'
+import BaseModify from './BaseModify'
 
-export default class User extends BaseModel {
+type Builder = ModelQueryBuilderContract<typeof User>
+
+export default class User extends BaseModify {
   public static table = 'users'
 
-  @column({ isPrimary: true, serialize: ((value) => Number(value)) })
+  @column({
+    isPrimary: true,
+    serialize: ((value) => Number(value))
+  })
   public id: number
 
   @column()
@@ -14,35 +27,19 @@ export default class User extends BaseModel {
   @column()
   public email: string
 
-  @column({ serializeAs: null })
+  @column({
+    serializeAs: null
+  })
   public password: string
 
-  @column({ serializeAs: null })
-  public createdBy: number
-
-  @column({ serializeAs: null })
-  public updatedBy: number
-
-  @column({ serializeAs: null })
-  public DeletedBy: number
-
-  @belongsTo(() => User, { foreignKey: 'created_by' })
-  public creator: BelongsTo<typeof User>
-
-  @belongsTo(() => User, { foreignKey: 'updated_by' })
-  public editor: BelongsTo<typeof User>
-
-  @belongsTo(() => User, { foreignKey: 'deleted_by' })
-  public destroyer: BelongsTo<typeof User>
-
-  @column.dateTime({ autoCreate: true , serialize: (value) => { return value ? DateTime.fromISO(value).toFormat('yyyy-LL-dd HH:mm:ss') : value } })
-  public createdAt: DateTime
-
-  @column.dateTime({ autoCreate: true, autoUpdate: true, serialize: (value) => { return value ? DateTime.fromISO(value).toFormat('yyyy-LL-dd HH:mm:ss') : value } })
-  public updatedAt: DateTime
-
-  @column.dateTime({ serialize: (value) => { return value ? DateTime.fromISO(value).toFormat('yyyy-LL-dd HH:mm:ss') : value } })
-  public deletedAt: DateTime
+  @manyToMany(() => Role, {
+    pivotTable: 'role_users',
+    localKey: 'id',
+    pivotForeignKey: 'user_id',
+    relatedKey: 'id',
+    pivotRelatedForeignKey: 'role_id'
+  })
+  public roles: ManyToMany<typeof Role>
 
   @beforeSave()
   public static async hashPassword(user: User) {
@@ -50,5 +47,11 @@ export default class User extends BaseModel {
       user.password = await Hash.make(user.password)
     }
   }
+
+  public static withRelation = scope((query: Builder, relations: string[]) => {
+    if (relations.includes('roles')) {
+      query.preload('roles')
+    }
+  })
     
 }

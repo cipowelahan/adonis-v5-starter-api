@@ -41,5 +41,6 @@ Server.middleware.register([
 |
 */
 Server.middleware.registerNamed({
-  auth: () => import("App/Middleware/APIAuth")
+  auth: () => import("App/Middleware/APIAuth"),
+  permissions: () => import("App/Middleware/Permissions")
 })

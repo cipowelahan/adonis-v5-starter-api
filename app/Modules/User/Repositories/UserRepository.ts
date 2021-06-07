@@ -2,54 +2,79 @@ import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
 import { UserStoreValidationDto, UserUpdateValidationDto } from '../Validations/UserValidation'
 import { AuthenticationException } from '@adonisjs/auth/build/standalone'
 import { DateTime } from 'luxon';
+import { EXCEPTION_CODE, EXCEPTION_MESSAGE } from 'App/Constants/String'
 import User from './Entities/User'
 
 export default class UserRepository {
   public async index({ request }: HttpContextContract) {
-    const urlQuery = request.get()
+    const urlQuery = request.qs()
     const page = urlQuery.page || 1
-    const users = await User
+    const limit = urlQuery.limit || 10
+    const users = User
       .query()
-      .whereNull('deleted_at')
       .if(urlQuery.search, (query) => {
-        query.where((subQuery) => {
-            subQuery
-              .where('name', 'ilike', `%${urlQuery.search}%`)
-              .orWhere('email', 'ilike', `%${urlQuery.search}%`)
-        })
+        query.apply((scope) => scope.withSearch(['name', 'email'], urlQuery.search))
+      })
+      .if(urlQuery.with, (query) => {
+        const listWith = String(urlQuery.with).split(',')
+        query.apply((scope) => scope.withRelation(listWith))
+        query.apply((scope) => scope.withRelationModify(listWith))
       })
       .orderBy('created_at', 'desc')
-      .paginate(page, 10)
+
+    if (urlQuery.paginate == "false") {
+      return await users
+    }
     
-    users.baseUrl(request.url())
-    users.queryString(urlQuery)
-    return users
+    const paginate = await users.paginate(page, limit)
+    paginate.baseUrl(request.url())
+    paginate.queryString(urlQuery)
+    return paginate
   }
 
-  public async find(id: number) {
-    const user = await User.query().where('id', id).whereNull('deleted_at').first()
+  public async find(id: number, urlQuery?: Record<string, any>): Promise<User> {
+    const user = await User
+      .query()
+      .where('id', id)
+      .if(urlQuery, (query) => {
+        const listWith = String(urlQuery?.with).split(',')
+        query.apply((scope) => scope.withRelation(listWith))
+        query.apply((scope) => scope.withRelationModify(listWith))
+      })
+      .first()
+
     if (!user) {
-      throw new AuthenticationException("Row Not Found", "E_ROW_NOT_FOUND")
+      throw new AuthenticationException(EXCEPTION_MESSAGE.E_ROW_NOT_FOUND, EXCEPTION_CODE.E_ROW_NOT_FOUND)
     }
-    return await User.findOrFail(id)
+
+    return user
   }
 
   public async store({ auth }: HttpContextContract, data: UserStoreValidationDto) {
     const authUser = auth.user!
+    const { roles, ...otherData } = data
     const user = new User()
-    user.fill(data)
-    user.createdBy = authUser.id
+    user.fill({
+      ...otherData,
+      created_by: authUser.id
+    })
     await user.save()
+    await user.related('roles').sync(roles)
     return await this.find(user.id)
   }
 
   public async update({ auth, params }: HttpContextContract, data: UserUpdateValidationDto) {
     const authUser = auth.user!
     const user = await this.find(params.id)
-    user.name = data.name
-    user.role = data.role
-    user.updatedBy = authUser.id
+    const { roles, ...otherData } = data
+    user.merge({
+      ...otherData,
+      updated_by: authUser.id
+    })
     await user.save()
+    if (roles) {
+      await user.related('roles').sync(roles)
+    }
     return await this.find(user.id)
   }
 
