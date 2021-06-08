@@ -4,7 +4,8 @@ import {
   LoginUserValidation,
   PasswordChangeValidation,
   EmailChangeValidation,
-  ProfileChangeValidation
+  ProfileChangeValidation,
+  AvatarChangeValidation
 } from '../Validations/AuthValidation'
 import { RESPONSE_MESSAGE } from 'App/Constants/String'
 import AuthRepository from '../Repositories/AuthRepository'
@@ -46,6 +47,12 @@ export default class AuthController {
   public async updateProfile(ctx: HttpContextContract) {
     const data = await ctx.request.validate(ProfileChangeValidation)
     await this.repo.updateProfile(ctx, data)
+    return ctx.response.sendData(null, RESPONSE_MESSAGE.UPDATED)
+  }
+
+  public async updateAvatar(ctx: HttpContextContract) {
+    const data = await ctx.request.validate(AvatarChangeValidation)
+    await this.repo.updateAvatar(ctx, data)
     return ctx.response.sendData(null, RESPONSE_MESSAGE.UPDATED)
   }
 

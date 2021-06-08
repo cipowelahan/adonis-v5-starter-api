@@ -4,10 +4,17 @@ import {
   LoginUserValidationDto,
   PasswordChangeDto,
   EmailChangeDto,
-  ProfileChangeDto
+  ProfileChangeDto,
+  AvatarChangeDto
 } from '../Validations/AuthValidation'
+import {
+  EXCEPTION_CODE,
+  EXCEPTION_MESSAGE,
+  UPLOAD_PATH
+} from 'App/Constants/String'
 import { AuthenticationException } from '@adonisjs/auth/build/standalone'
-import { EXCEPTION_CODE, EXCEPTION_MESSAGE } from 'App/Constants/String'
+import { DateTime } from 'luxon'
+import Application from '@ioc:Adonis/Core/Application'
 import Database from '@ioc:Adonis/Lucid/Database'
 import Hash from '@ioc:Adonis/Core/Hash'
 import User from './Entities/User'
@@ -50,6 +57,14 @@ export default class AuthRepository {
   public async updateProfile(ctx: HttpContextContract, data: ProfileChangeDto) {
     const user = await this.find(ctx)
     user.merge(data)
+    await user.save()
+  }
+
+  public async updateAvatar(ctx: HttpContextContract, data: AvatarChangeDto) {
+    const user = await this.find(ctx)
+    const name = `${DateTime.now().toMillis()}.${data.avatar.extname}`
+    await data.avatar.move(Application.publicPath(UPLOAD_PATH.PATH_USER_AVATAR), { name })
+    user.avatar = `${UPLOAD_PATH.PATH_USER_AVATAR}/${name}`
     await user.save()
   }
 

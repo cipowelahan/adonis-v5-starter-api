@@ -31,3 +31,7 @@ export enum EXCEPTION_MESSAGE {
   E_NOTACCAPTABLE_ACCESS = "Not Accaptable Access",
   E_INVALID_MODIFY_ROLE = "Invalid Mofify Role"
 }
+
+export enum UPLOAD_PATH {
+  PATH_USER_AVATAR = "uploads/users/avatars"
+}

@@ -32,6 +32,9 @@ export default class User extends BaseModify {
   })
   public password: string
 
+  @column()
+  public avatar: string
+
   @manyToMany(() => Role, {
     pivotTable: 'role_users',
     localKey: 'id',
@@ -53,5 +56,5 @@ export default class User extends BaseModify {
       query.preload('roles')
     }
   })
-    
+  
 }

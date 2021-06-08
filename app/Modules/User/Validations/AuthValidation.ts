@@ -1,4 +1,5 @@
 import { HttpContextContract } from '@ioc:Adonis/Core/HttpContext'
+import { MultipartFileContract } from '@ioc:Adonis/Core/BodyParser'
 import { schema, rules } from '@ioc:Adonis/Core/Validator'
 
 export class RegisterUserValidationDto {
@@ -158,3 +159,29 @@ export class EmailChangeValidation {
     required: '{{ field }} is required',
   }
 }
+
+export class AvatarChangeDto {
+  public avatar: MultipartFileContract
+}
+
+export class AvatarChangeValidation {
+  constructor(private ctx: HttpContextContract) { }
+
+  public schema = schema.create({
+    avatar: schema.file({
+      size: '2mb',
+      extnames: [
+        'jpg',
+        'jpeg',
+        'png'
+      ]
+    })
+  })
+
+  public cacheKey = this.ctx.routeKey
+
+  public messages = {
+    required: '{{ field }} is required',
+  }
+}
+

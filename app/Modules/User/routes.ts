@@ -17,6 +17,7 @@ Route
             Route.put('/user', 'AuthController.updateProfile')
             Route.put('/password', 'AuthController.changePassword')
             Route.put('/email', 'AuthController.changeEmail')
+            Route.post('/avatar', 'AuthController.updateAvatar')
           })
           .middleware('auth')
     
